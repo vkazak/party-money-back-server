@@ -8,27 +8,47 @@ const getSumForPayments = (payments) => {
     return ( payments.reduce(sumFunc, 0) );
 }
 
-const getSumForUser = (payments, userId) => {
-    const sumFunc = (acc, payment) => acc + 
-        (payment.user.toString() == userId.toString() ? Number(payment.amount) : 0);
+const getSumForMember = (payments, memberId, isDummy) => {
+    const isMember = (payment) => {
+        let result;
+        if (isDummy) {
+            result = payment.dummy ? payment.dummy.toString() == memberId.toString() : false;
+        } else {
+            result = payment.user ? payment.user.toString() == memberId.toString() : false;
+        }
+        return result;
+    }
+
+    const sumFunc = (acc, payment) => {
+        return (
+            acc + (isMember(payment) ? Number(payment.amount) : 0)
+        );
+    };
+    
     return ( payments.reduce(sumFunc, 0) );
 }
 
-const calculateDebts = (payments, usersIds) => {
+const calculateDebts = (payments, usersIds, dummiesIds) => {try{
     const sum = getSumForPayments(payments);
-    const amountPerPerson = sum / usersIds.length;
+    const members = usersIds.length + dummiesIds.length;
+    const amountPerPerson = sum / members;
     const plusGuys = []
     const minusGuys = [];
+    
+    const distribute = (memberIds, isDummy) => {
+        memberIds.forEach(memberId => {
+            const sumForMember = getSumForMember(payments, memberId, isDummy);
+            if (sumForMember > amountPerPerson) {
+                plusGuys.push({ memberId, isDummy, amount: sumForMember - amountPerPerson });
+            }
+            else {
+                minusGuys.push({ memberId, isDummy, amount: amountPerPerson - sumForMember });
+            }
+        });
+    }
 
-    usersIds.forEach(userId => {
-        const sumForUser = getSumForUser(payments, userId);
-        if (sumForUser > amountPerPerson) {
-            plusGuys.push({userId: userId, amount: sumForUser - amountPerPerson});
-        }
-        else {
-            minusGuys.push({userId: userId, amount: amountPerPerson - sumForUser});
-        }
-    });
+    distribute(usersIds, false);
+    distribute(dummiesIds, true);
 
     const compareDesc = (a, b) => b.amount - a.amount;
     plusGuys.sort(compareDesc);
@@ -48,6 +68,20 @@ const calculateDebts = (payments, usersIds) => {
 
     const minusGuyIter = MinusGuysIter();
 
+    const pushResult = (minusGuy, plusGuy, amount) => {
+        result.push({
+            from: {
+                id: minusGuy.memberId,
+                isDummy: minusGuy.isDummy
+            },
+            to: {
+                id: plusGuy.memberId,
+                isDummy: plusGuy.isDummy
+            },
+            amount
+        })
+    }
+
     plusGuys.forEach(plusGuy => {
         while (plusGuy.amount > EPS) {
             const minusGuy = minusGuyIter.next().value;
@@ -55,7 +89,7 @@ const calculateDebts = (payments, usersIds) => {
             if (minValue < EPS) throw 'ERROR minValue < EPS'
             plusGuy.amount -= minValue;
             minusGuy.amount -= minValue;
-            result.push({ from: minusGuy.userId, to: plusGuy.userId, amount: minValue });
+            pushResult(minusGuy, plusGuy, minValue);
         }
     });
 
@@ -69,7 +103,7 @@ const calculateDebts = (payments, usersIds) => {
         spent: sum,
         perPerson: amountPerPerson,
         debts: result
-    }
+    } } catch (err) {console.log(err);}
 }
 
 router.route('/debts/:partyId').get((req, res) => {
@@ -81,7 +115,7 @@ router.route('/debts/:partyId').get((req, res) => {
             currentParty = party;
             return ( Payment.find({party: partyId}) )
         })
-        .then(payments => res.json(calculateDebts(payments, currentParty.users)))
+        .then(payments => res.json(calculateDebts(payments, currentParty.users, currentParty.dummies)))
         .catch(err => res.status(400).json('Error: ' + err));
 });
 

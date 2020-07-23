@@ -18,15 +18,40 @@ router.route('/by_party/:partyId').get((req, res) => {
         .catch(err => res.status(400).json('Error: ' + err))
 })
 
-router.route('/add').post((req, res) => {
-    const name = req.body.name;
-    const email = req.body.email;
+const googleUserInfoToUse = (userInfo) => {
+    const user = new User({
+        externalId: userInfo.id,
+        name: userInfo.name,
+        email: userInfo.email,
+        photoUrl: userInfo.photoUrl,
+        firstName: userInfo.givenName,
+        lastName: userInfo.familyName,
+    });
 
-    const newUser = new User({ name, email });
+    return user;
+}
 
-    newUser.save()
-        .then(() => res.json(newUser))
-        .catch(err => res.status(400).json('Error: ' + err));
+router.route('/google_user_upd').post((req, res) => {
+    const userInfo = req.body.userInfo;
+    const user = googleUserInfoToUse(userInfo);
+
+    User.findOne({ externalId: user.externalId })
+        .then(userInDb => {
+            const userToInsert = user;
+            if (userInDb) {
+                userToInsert.dummies = userInDb.dummies;
+                userToInsert.isNew = false;
+                userToInsert._id = userInDb._id;
+            }
+            else {
+                userToInsert.dummies = [];
+            }
+            console.log(userToInsert);
+            return userToInsert
+        })
+        .then(userToInsert => userToInsert.save())
+        .then(updatedUser => res.json(updatedUser))
+        .catch(err => console.log(err))        
 });
 
 module.exports = router;

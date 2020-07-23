@@ -11,7 +11,10 @@ const paymentSchema = new Schema(
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: true
+        },
+        dummy: {
+            type: Schema.Types.ObjectId,
+            ref: 'Dummy'
         },
         amount: {
             type: Number,

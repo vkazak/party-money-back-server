@@ -4,10 +4,11 @@ const Payment = require('../models/payment.model');
 router.route('/add').post((req, res) => {
     const partyId = req.body.partyId;
     const userId = req.body.userId;
+    const dummyId = req.body.dummyId;
     const amount = Number(req.body.amount);
     const description = req.body.description;
 
-    const newPayment = new Payment({user: userId, party: partyId, amount, description});
+    const newPayment = new Payment({user: userId, dummy: dummyId, party: partyId, amount, description});
 
     newPayment.save()
         .then((payment) => res.json(payment))
@@ -19,6 +20,7 @@ router.route('/by_party/:partyId').get((req, res) => {
 
     Payment.find({party: partyId})
         .populate('user')
+        .populate('dummy')
         .then(payment => res.json(payment))
         .catch(err => res.status(400).json('Error: ' + err));
 })

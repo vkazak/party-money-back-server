@@ -8,6 +8,9 @@ const partySchema = new Schema(
             trim: true,
             required: true
         },
+        dummies: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'Dummy' }]
+        },
         users: {
             type: [{ type: Schema.Types.ObjectId, ref: 'User'}]
         }

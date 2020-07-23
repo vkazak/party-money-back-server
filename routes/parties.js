@@ -19,13 +19,21 @@ router.route('/add').post((req, res) => {
        .catch(err => res.status(400).json('Error: ' + err));
 });
 
-router.route('/addusers').post((req, res) => {
+router.route('/addmembers').post((req, res) => {
     const partyId = ObjectId(req.body.partyId);
-    const usersIds = req.body.usersIds.map(id => ObjectId(id));
+    const rawUsersIds = req.body.usersIds;
+    const rawDummiesIds = req.body.dummiesIds;
+    
+    const usersIds = rawUsersIds ? rawUsersIds.map(id => ObjectId(id)) : [];
+    const dummiesIds = rawDummiesIds ? rawDummiesIds.map(id => ObjectId(id)) : [];
+
+    console.log(usersIds);
+    console.log(dummiesIds);
 
     Party.findById(partyId)
         .then((party) => {
             party.users = party.users.concat(usersIds);
+            party.dummies = party.dummies.concat(dummiesIds);
             party.save();
             res.end();
         })

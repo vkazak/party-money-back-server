@@ -19,11 +19,14 @@ const connection = mongoose.connection;
 connection.once('open', () => { console.log('DB has successfully connected') });
 
 const usersRouter = require('./routes/users');
+const dummiesRouter = require('./routes/dummies');
 const partiesRouter = require('./routes/parties');
 const paymentsRouter = require('./routes/payments');
 const calculatorRouter = require('./routes/calculator');
 
+app.use(express.static('public'));
 app.use('/users', usersRouter);
+app.use('/dummies', dummiesRouter);
 app.use('/parties', partiesRouter);
 app.use('/payments', paymentsRouter);
 app.use('/calculate', calculatorRouter);
