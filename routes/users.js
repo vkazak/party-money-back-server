@@ -46,7 +46,6 @@ router.route('/google_user_upd').post((req, res) => {
             else {
                 userToInsert.dummies = [];
             }
-            console.log(userToInsert);
             return userToInsert
         })
         .then(userToInsert => userToInsert.save())

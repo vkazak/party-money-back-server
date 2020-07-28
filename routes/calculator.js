@@ -28,7 +28,7 @@ const getSumForMember = (payments, memberId, isDummy) => {
     return ( payments.reduce(sumFunc, 0) );
 }
 
-const calculateDebts = (payments, usersIds, dummiesIds) => {try{
+const calculateDebts = (payments, usersIds, dummiesIds) => {
     const sum = getSumForPayments(payments);
     const members = usersIds.length + dummiesIds.length;
     const amountPerPerson = sum / members;
@@ -103,12 +103,11 @@ const calculateDebts = (payments, usersIds, dummiesIds) => {try{
         spent: sum,
         perPerson: amountPerPerson,
         debts: result
-    } } catch (err) {console.log(err);}
+    }
 }
 
 router.route('/debts/:partyId').get((req, res) => {
     const partyId = ObjectId(req.params.partyId);
-    console.log(partyId);
     let currentParty;
     Party.findById(partyId)
         .then(party => {

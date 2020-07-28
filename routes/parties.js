@@ -11,8 +11,11 @@ router.route('/by_user/:userId').get((req, res) => {
 
 router.route('/add').post((req, res) => {
     const name = req.body.name;
-
-    const newParty = new Party({ name });
+    const rawUsersIds = req.body.users;
+    const rawDummiesIds = req.body.dummies;
+    const users = rawUsersIds ? rawUsersIds.map(id => ObjectId(id)) : [];
+    const dummies = rawDummiesIds ? rawDummiesIds.map(id => ObjectId(id)) : [];
+    const newParty = new Party({ name, users, dummies });
 
     newParty.save()
        .then(() => res.json(newParty))
@@ -26,9 +29,6 @@ router.route('/addmembers').post((req, res) => {
     
     const usersIds = rawUsersIds ? rawUsersIds.map(id => ObjectId(id)) : [];
     const dummiesIds = rawDummiesIds ? rawDummiesIds.map(id => ObjectId(id)) : [];
-
-    console.log(usersIds);
-    console.log(dummiesIds);
 
     Party.findById(partyId)
         .then((party) => {
