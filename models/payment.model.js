@@ -16,6 +16,12 @@ const paymentSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'Dummy'
         },
+        forUsers: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+        },
+        forDummies: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'Dummy' }]
+        },
         amount: {
             type: Number,
             min: 0,

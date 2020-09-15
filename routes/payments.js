@@ -2,19 +2,23 @@ const router = require('express').Router();
 const Payment = require('../models/payment.model');
 
 router.route('/add').post(async (req, res) => {
-    const partyId = req.body.partyId;
-    const userId = req.body.userId;
-    const dummyId = req.body.dummyId;
+    const party = req.body.partyId;
+    const user = req.body.userId;
+    const dummy = req.body.dummyId;
+    const forUsers = req.body.forUsersIds;
+    const forDummies = req.body.forDummiesIds;
     const amount = Number(req.body.amount);
     const description = req.body.description;
 
-    const newPayment = new Payment({user: userId, dummy: dummyId, party: partyId, amount, description});
+    const newPayment = new Payment({user, dummy, party, forUsers, forDummies, amount, description});
     
     try {
         await newPayment.save();
         Payment.findById(newPayment._id)
             .populate('user')
             .populate('dummy')
+            .populate('forUsers')
+            .populate('forDummies')
             .then(payment => res.json(payment))
     } catch(err) {
         res.status(400).json('Error: ' + err)
