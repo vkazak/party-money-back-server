@@ -31,6 +31,8 @@ router.route('/by_party/:partyId').get((req, res) => {
     Payment.find({party: partyId})
         .populate('user')
         .populate('dummy')
+        .populate('forUsers')
+        .populate('forDummies')
         .then(payment => res.json(payment))
         .catch(err => res.status(400).json('Error: ' + err));
 })
