@@ -3,8 +3,9 @@ const Dummy = require('../models/dummy.model');
 const User = require('../models/user.model');
 const Party = require('../models/party.model');
 const ObjectId = require('mongoose').Types.ObjectId;
+const auth = require('../middleware/auth');
 
-router.route('/add').post((req, res) => {
+router.route('/add').post(auth.validateUserIdAsBodyParam, (req, res) => {
     const name = req.body.name;
     const userId = req.body.userId;
     const newDummy = new Dummy({ name });
@@ -19,7 +20,7 @@ router.route('/add').post((req, res) => {
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
-router.route('/by_user/:userId').get((req, res) => {
+router.route('/by_user/:userId').get(auth.validateUserIdAsGetParam, (req, res) => {
     const userId = ObjectId(req.params.userId);
     User.findById(userId)
         .populate('dummies')
@@ -27,7 +28,8 @@ router.route('/by_user/:userId').get((req, res) => {
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
-router.route('/by_party/:partyId').get((req, res) => {
+// TODO -- any user can get dummies of any party
+router.route('/by_party/:partyId').get(auth.validateUser, (req, res) => {
     const partyId = ObjectId(req.params.partyId);
     
     Party.findById(partyId)

@@ -2,14 +2,15 @@ const router = require('express').Router();
 const User = require('../models/user.model');
 const Party = require('../models/party.model');
 const ObjectId = require('mongoose').Types.ObjectId;
+const auth = require('../middleware/auth');
 
-router.route('/').get((req, res) => {
+router.route('/').get(auth.validateUser, (req, res) => {
     User.find()
         .then(users => res.json(users))
         .catch(err => res.status(400).json('Error: ' + err));
 });
-
-router.route('/by_party/:partyId').get((req, res) => {
+// TODO -- any user can get users list of any party
+router.route('/by_party/:partyId').get(auth.validateUser, (req, res) => {
     const partyId = ObjectId(req.params.partyId);
 
     Party.findById(partyId)
@@ -30,7 +31,7 @@ const googleUserInfoToUse = (userInfo) => {
 
     return user;
 }
-
+// TODO 
 router.route('/google_user_upd').post((req, res) => {
     const userInfo = req.body.userInfo;
     const user = googleUserInfoToUse(userInfo);
@@ -52,5 +53,12 @@ router.route('/google_user_upd').post((req, res) => {
         .then(updatedUser => res.json(updatedUser))
         .catch(err => console.log(err))        
 });
+
+router.route('/by_token').get(auth.validateUser, async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    User.findById(await auth.sessions.getUserIdByToken(token))
+        .then(user => res.json(user))
+        .catch(err => res.status(400).json('Error: ' + err));
+})
 
 module.exports = router;

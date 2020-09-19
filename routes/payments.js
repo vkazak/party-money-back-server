@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const Payment = require('../models/payment.model');
+const auth = require('../middleware/auth');
 
-router.route('/add').post(async (req, res) => {
+// TODO -- any user can add payment to any party
+router.route('/add').post(auth.validateUser, async (req, res) => {
     const party = req.body.partyId;
     const user = req.body.userId;
     const dummy = req.body.dummyId;
@@ -25,7 +27,8 @@ router.route('/add').post(async (req, res) => {
     }
 });
 
-router.route('/by_party/:partyId').get((req, res) => {
+// TODO -- any user can get payments of any party
+router.route('/by_party/:partyId').get(auth.validateUser, (req, res) => {
     const partyId = req.params.partyId;
 
     Payment.find({party: partyId})

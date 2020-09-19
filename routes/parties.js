@@ -1,15 +1,16 @@
 const router = require('express').Router();
 const Party = require('../models/party.model');
 const ObjectId = require('mongoose').Types.ObjectId;
+const auth = require('../middleware/auth');
 
-router.route('/by_user/:userId').get((req, res) => {
+router.route('/by_user/:userId').get(auth.validateUserIdAsGetParam, (req, res) => {
     const userId = ObjectId(req.params.userId);
     Party.find({users: userId})
         .then(parties => res.json(parties))
         .catch(err => res.status(400).json('Error: ' + err));
 });
-
-router.route('/add').post((req, res) => {
+//TODO -- any user can add party with any list of dummies and users
+router.route('/add').post(auth.validateUser, (req, res) => {
     const name = req.body.name;
     const rawUsersIds = req.body.users;
     const rawDummiesIds = req.body.dummies;
@@ -21,8 +22,8 @@ router.route('/add').post((req, res) => {
        .then(() => res.json(newParty))
        .catch(err => res.status(400).json('Error: ' + err));
 });
-
-router.route('/addmembers').post((req, res) => {
+//TODO -- any user can add members to any party
+router.route('/addmembers').post(auth.validateUser, (req, res) => {
     const partyId = ObjectId(req.body.partyId);
     const rawUsersIds = req.body.usersIds;
     const rawDummiesIds = req.body.dummiesIds;

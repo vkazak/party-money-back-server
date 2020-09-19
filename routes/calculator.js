@@ -106,6 +106,7 @@ const calculateDebts = (payments, usersIds, dummiesIds) => {
     }
 }
 
+//deprecated
 router.route('/debts/:partyId').get((req, res) => {
     const partyId = ObjectId(req.params.partyId);
     let currentParty;
